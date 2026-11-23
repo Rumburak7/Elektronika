@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator elektronika</title>
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#12161c">
+<style>
+  :root{
+    --bg:#12161c; --karta:#1c232c; --karta2:#232c37; --ramka:#2f3a47; --tekst:#e8eef3; --szary:#8b9aa8;
+    --akcent:#2bb3a3; --akcent2:#22968a; --zolty:#e0a030; --czerw:#e05545; --ziel:#3fbf6a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tekst);font-family:"Segoe UI",Roboto,Arial,sans-serif;font-size:16px;line-height:1.45}
+  header{padding:18px 22px 8px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  header h1{margin:0;font-size:26px;letter-spacing:.5px}
+  header h1 span{color:var(--akcent)}
+  header small{color:var(--szary)}
+  .uklad{display:grid;grid-template-columns:230px 1fr;gap:18px;padding:8px 22px 30px;max-width:1250px}
+  nav{display:flex;flex-direction:column;gap:6px;position:sticky;top:12px;align-self:start}
+  nav button{all:unset;cursor:pointer;padding:11px 14px;border-radius:10px;background:var(--karta);color:var(--tekst);font-size:16px;display:flex;gap:10px;align-items:center;border:1px solid transparent}
+  nav button:hover{background:var(--karta2)}
+  nav button.on{background:var(--akcent);color:#06201d;font-weight:700}
+  section{display:none}
+  section.on{display:block}
+  .k{background:var(--karta);border:1px solid var(--ramka);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+  .k h2{margin:0 0 10px;font-size:20px}
+  .k h3{margin:0 0 8px;font-size:17px;color:var(--akcent)}
+  .siatka{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 16px}
+  label{display:block;color:var(--szary);font-size:14px;margin-bottom:3px}
+  input,select{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--ramka);background:#0e1217;color:var(--tekst);font-size:17px;font-family:inherit}
+  input:focus,select:focus{outline:2px solid var(--akcent);border-color:transparent}
+  button.b{cursor:pointer;padding:10px 16px;border-radius:9px;border:0;background:var(--akcent);color:#06201d;font-weight:700;font-size:16px}
+  button.b.szary{background:var(--karta2);color:var(--tekst);border:1px solid var(--ramka)}
+  .wynik{background:#0e1217;border-radius:12px;padding:14px 16px;margin-top:14px;border-left:5px solid var(--akcent)}
+  .wynik .duzy{font-size:34px;font-weight:800;line-height:1.15}
+  .wynik .sr{font-size:20px;font-weight:700}
+  .uw{border-left-color:var(--zolty)} .zle{border-left-color:var(--czerw)}
+  .notka{color:var(--szary);font-size:14px;margin-top:8px}
+  .ost{color:var(--zolty)} .blad{color:var(--czerw)} .ok{color:var(--ziel)}
+  /* rezystor */
+  .pasy{display:grid;gap:8px;margin-top:8px}
+  .pas{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .pas b{width:118px;font-size:14px;color:var(--szary);font-weight:600}
+  .kol{width:30px;height:30px;border-radius:50%;border:2px solid #0006;cursor:pointer;padding:0;position:relative}
+  .kol.on{outline:3px solid var(--tekst);outline-offset:2px}
+  .kol[disabled]{opacity:.12;cursor:default}
+  #rysR{width:100%;max-width:520px;display:block;margin:6px auto 0}
+  .przel{display:inline-flex;background:#0e1217;border-radius:10px;padding:3px;gap:3px}
+  .przel button{all:unset;cursor:pointer;padding:7px 14px;border-radius:8px;color:var(--szary)}
+  .przel button.on{background:var(--karta2);color:var(--tekst);font-weight:700}
+  /* piny */
+  .legenda{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;color:var(--szary);margin:4px 0 12px}
+  .kr{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:-1px;margin-right:5px}
+  .z{background:var(--ziel)} .y{background:var(--zolty)} .r{background:var(--czerw)} .n{background:#5b8def}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--ramka);vertical-align:top;font-size:15px}
+  th{color:var(--szary);font-weight:600;font-size:14px}
+  td.pin{white-space:nowrap;font-weight:700}
+  .tag{display:inline-block;font-size:12px;padding:1px 7px;border-radius:6px;background:var(--karta2);color:var(--szary);margin:2px 4px 0 0;white-space:nowrap}
+  footer{color:var(--szary);font-size:13px;padding:0 22px 24px}
+  @media (max-width:820px){
+    .uklad{grid-template-columns:1fr;padding:8px 12px 24px}
+    nav{flex-direction:row;overflow-x:auto;position:static;padding-bottom:4px}
+    nav button{white-space:nowrap;padding:9px 12px}
+    header{padding:14px 14px 4px}
+    .pas b{width:100%}
+    .wynik .duzy{font-size:28px}
+  }
+</style>
+</head>
+<body>
+<header><h1>⚡ Kalkulator <span>elektronika</span></h1><small>ściągawka przy lutowaniu – autor Adam Bryks 2026</small></header>
+<div class="uklad">
+<nav id="nav">
+  <button data-t="rez" class="on">🎨 Kolory rezystora</button>
+  <button data-t="led">💡 Rezystor do LED</button>
+  <button data-t="dz">➗ Dzielnik napięcia</button>
+  <button data-t="bat">🔋 Ile wytrzyma bateria</button>
+  <button data-t="pin">📌 Piny ESP</button>
+  <button data-t="ohm">⚡ Prawo Ohma i moc</button>
+  <button data-t="sl">🔤 Słowniczek PL–DE</button>
+</nav>
+<main>
+
+<!-- ================= REZYSTOR ================= -->
+<section id="rez" class="on">
+  <div class="k">
+    <h2>🎨 Kolory pasków → wartość</h2>
+    <div class="przel" id="ilePas"><button data-n="4" class="on">4 paski</button><button data-n="5">5 pasków</button></div>
+    <svg id="rysR" viewBox="0 0 520 120"></svg>
+    <div class="pasy" id="pasy"></div>
+    <div class="wynik"><div class="duzy" id="rWyn">–</div><div class="notka" id="rZakres"></div></div>
+    <p class="notka">Czytaj od strony, gdzie paski są bliżej krawędzi. Złoty albo srebrny pasek (tolerancja) jest zawsze na końcu.</p>
+  </div>
+  <div class="k">
+    <h2>🔁 Wartość → kolory</h2>
+    <div class="siatka">
+      <div><label>Wpisz wartość (np. 220, 4k7, 4,7k, 1M)</label><input id="rWpisz" placeholder="np. 4k7"></div>
+    </div>
+    <div class="wynik" id="rWpiszWyn" style="display:none"></div>
+  </div>
+  <div class="k">
+    <h2>🔵 Kod na kondensatorze</h2>
+    <div class="siatka"><div><label>Kod z kondensatora (np. 104, 473, 22)</label><input id="cKod" placeholder="np. 104"></div></div>
+    <div class="wynik" id="cWyn" style="display:none"></div>
+    <p class="notka">Dwie pierwsze cyfry to liczba, trzecia to ile zer dopisać – wynik w pikofaradach (pF). 104 = 10 + 0000 = 100 000 pF = 100 nF. Litera po kodzie to tolerancja (J = 5 %, K = 10 %, M = 20 %).</p>
+  </div>
+</section>
+
+<!-- ================= LED ================= -->
+<section id="led">
+  <div class="k">
+    <h2>💡 Jaki rezystor do diody LED?</h2>
+    <div class="siatka">
+      <div><label>Zasilanie</label><select id="lZas"><option value="3.3">3,3 V (pin ESP32 / ESP8266)</option><option value="5" selected>5 V (USB, Arduino)</option><option value="3.7">3,7 V (bateria 18650)</option><option value="12">12 V</option><option value="x">inne…</option></select></div>
+      <div id="lZasXBox" style="display:none"><label>Napięcie (V)</label><input id="lZasX" value="9"></div>
+      <div><label>Kolor diody</label><select id="lKol">
+        <option value="2.0">czerwona (ok. 2,0 V)</option><option value="2.1">pomarańczowa / żółta (ok. 2,1 V)</option>
+        <option value="2.2">zielona zwykła, matowa (ok. 2,2 V)</option><option value="3.0">zielona jasna / niebieska / biała (ok. 3,0 V)</option>
+        <option value="3.2">UV fioletowa (ok. 3,2 V)</option><option value="1.3">podczerwień IR (ok. 1,3 V)</option></select></div>
+      <div><label>Napięcie diody (V) – możesz poprawić</label><input id="lVf" value="2.0"></div>
+      <div><label>Prąd: <b id="lIWyp">10 mA</b></label><input id="lI" type="range" min="1" max="20" value="10" style="padding:0;margin-top:10px"></div>
+      <div><label>Ile diod jedna za drugą (szeregowo)</label><input id="lN" type="number" min="1" max="10" value="1"></div>
+    </div>
+    <div class="wynik" id="lWyn"></div>
+    <p class="notka">Zwykłe diody 3 mm / 5 mm: 20 mA to maksimum, 5–10 mA zwykle świeci wystarczająco jasno. Pin ESP32 daje bezpiecznie do ok. 20 mA, ESP8266 do ok. 12 mA. Paski WS2812B nie potrzebują tego rezystora – mają sterownik w środku.</p>
+  </div>
+</section>
+
+<!-- ================= DZIELNIK ================= -->
+<section id="dz">
+  <div class="k">
+    <h2>➗ Dzielnik napięcia</h2>
+    <p class="notka" style="margin-top:0">Plus → R1 → <b>pin ESP</b> → R2 → GND. Na pinie jest mniejsze napięcie. Tak mierzy się np. baterię 18650 albo 12 V.</p>
+    <svg viewBox="0 0 330 120" style="width:100%;max-width:330px;display:block;margin:4px 0 10px">
+      <g stroke="#8b9aa8" stroke-width="3" fill="none"><path d="M20 60H70M130 60H180M240 60H300M180 60V100"/></g>
+      <rect x="70" y="47" width="60" height="26" rx="5" fill="#d9c49a"/><rect x="180" y="47" width="60" height="26" rx="5" fill="#d9c49a"/>
+      <text x="100" y="40" fill="#e8eef3" font-size="15" text-anchor="middle">R1</text><text x="210" y="40" fill="#e8eef3" font-size="15" text-anchor="middle">R2</text>
+      <text x="14" y="66" fill="#e05545" font-size="15" text-anchor="end">+</text><text x="20" y="92" fill="#8b9aa8" font-size="13">Vin</text>
+      <circle cx="180" cy="100" r="6" fill="#2bb3a3"/><text x="190" y="112" fill="#2bb3a3" font-size="13">pin ESP</text>
+      <text x="306" y="66" fill="#8b9aa8" font-size="14">GND</text>
+    </svg>
+    <div class="siatka">
+      <div><label>Napięcie wejściowe Vin (V) – największe</label><input id="dVin" value="4.2"></div>
+      <div><label>R1 (górny)</label><input id="dR1" value="100k"></div>
+      <div><label>R2 (dolny, do GND)</label><input id="dR2" value="220k"></div>
+    </div>
+    <div class="wynik" id="dWyn"></div>
+  </div>
+  <div class="k">
+    <h3>🔍 Dobierz mi rezystory</h3>
+    <div class="siatka">
+      <div><label>Na czym mierzysz?</label><select id="dCel">
+        <option value="3.1">ESP32 / ESP32-S3 (pin ADC, max ok. 3,1 V)</option>
+        <option value="3.2">ESP8266 NodeMCU / D1 mini – pin A0 (max 3,2 V)</option>
+        <option value="1.0">ESP8266 goły moduł (ESP-12) – ADC (max 1,0 V)</option>
+        <option value="5.0">Arduino Nano / Uno (max 5 V)</option></select></div>
+      <div style="align-self:end"><button class="b" id="dDobierz">Dobierz rezystory</button></div>
+    </div>
+    <div class="wynik" id="dDobWyn" style="display:none"></div>
+    <p class="notka">ESP32 mierzy najdokładniej między ok. 0,15 V a 3,1 V (ustawienie ADC_11db). Duże rezystory (100k i więcej) prawie nie zużywają baterii.</p>
+  </div>
+</section>
+
+<!-- ================= BATERIA ================= -->
+<section id="bat">
+  <div class="k">
+    <h2>🔋 Ile wytrzyma bateria?</h2>
+    <div class="siatka">
+      <div><label>Pojemność baterii (mAh)</label><input id="bPoj" value="2600"></div>
+      <div><label>Ile baterii równolegle</label><input id="bIle" type="number" min="1" max="10" value="1"></div>
+      <div><label>Gotowe przykłady</label><select id="bPreset">
+        <option value="">– wybierz –</option>
+        <option value="120|0|0|0">ESP32 z WiFi, cały czas włączony</option>
+        <option value="80|0|0|0">ESP8266 z WiFi, cały czas włączony</option>
+        <option value="120|5|0.01|600">ESP32: co 10 min budzi się na 5 s (goły moduł)</option>
+        <option value="120|5|8|600">ESP32 na płytce DevKit: co 10 min na 5 s</option>
+        <option value="1|0|0|0">ATtiny85 bez snu (1 MHz)</option>
+        <option value="15|21600|0.005|64800">20 mini LED: 6 h świeci (ok. 15 mA), 18 h śpi</option>
+      </select></div>
+    </div>
+    <div class="siatka" style="margin-top:12px">
+      <div><label>Prąd, gdy pracuje (mA)</label><input id="bIa" value="120"></div>
+      <div><label>Jak długo pracuje (s) – 0 = cały czas</label><input id="bTa" value="0"></div>
+      <div><label>Prąd w uśpieniu (mA) – 0,01 mA = 10 µA</label><input id="bIs" value="0"></div>
+      <div><label>Jak długo śpi (s)</label><input id="bTs" value="0"></div>
+    </div>
+    <div class="wynik" id="bWyn"></div>
+    <p class="notka">Liczę z 80 % pojemności (bateria nigdy nie oddaje wszystkiego, a przetwornica też coś zjada). Płytki DevKit / NodeMCU mają na sobie chip USB, diodę i stabilizator – w uśpieniu ciągną kilka mA, a goły moduł tylko ok. 10 µA. To dlatego „śpiący” ESP na płytce szybko rozładowuje baterię.</p>
+  </div>
+</section>
+
+<!-- ================= PINY ================= -->
+<section id="pin">
+  <div class="k">
+    <h2>📌 Które piny wolno używać?</h2>
+    <div class="przel" id="plytka"><button data-p="esp32" class="on">ESP32 DevKit</button><button data-p="esp8266">ESP8266 NodeMCU / D1 mini</button><button data-p="s3">ESP32-S3 DevKitC-1</button></div>
+    <div class="legenda"><span><i class="kr z"></i>spokojnie używaj</span><span><i class="kr y"></i>z uwagą (przeczytaj opis)</span><span><i class="kr r"></i>nie ruszaj</span><span><i class="kr n"></i>tylko wejście</span></div>
+    <input id="pSzukaj" placeholder="szukaj, np. ADC, I2C, LED, 21…" style="margin-bottom:10px">
+    <table><thead><tr><th>Pin</th><th>Opis</th></tr></thead><tbody id="pTab"></tbody></table>
+    <p class="notka" id="pNotka"></p>
+  </div>
+</section>
+
+<!-- ================= OHM ================= -->
+<section id="ohm">
+  <div class="k">
+    <h2>⚡ Prawo Ohma i moc</h2>
+    <p class="notka" style="margin-top:0">Wpisz <b>dowolne dwie</b> wartości – reszta policzy się sama. Wyczyść pole, żeby je przeliczyć od nowa.</p>
+    <div class="siatka">
+      <div><label>Napięcie U (V)</label><input id="oU" data-o="U"></div>
+      <div><label>Prąd I (mA)</label><input id="oI" data-o="I"></div>
+      <div><label>Opór R (Ω, można 4k7)</label><input id="oR" data-o="R"></div>
+      <div><label>Moc P (W)</label><input id="oP" data-o="P"></div>
+    </div>
+    <div style="margin-top:12px"><button class="b szary" id="oCzysc">Wyczyść</button></div>
+    <div class="wynik" id="oWyn"><span class="notka">U = I × R · P = U × I</span></div>
+  </div>
+  <div class="k">
+    <h3>Jaki rezystor wytrzyma?</h3>
+    <p class="notka" style="margin-top:0">Zwykły mały rezystor do płytki stykowej to <b>¼ W (0,25 W)</b>. Bierz taki, który ma co najmniej 2 × więcej niż policzona moc. Jeśli moc wychodzi powyżej 0,125 W – weź ½ W albo większy.</p>
+  </div>
+</section>
+
+<!-- ================= SŁOWNICZEK ================= -->
+<section id="sl">
+  <div class="k">
+    <h2>🔤 Słowniczek polsko–niemiecki (i angielski)</h2>
+    <input id="sSzukaj" placeholder="szukaj po polsku, niemiecku albo angielsku…" style="margin-bottom:10px">
+    <table><thead><tr><th>Polski</th><th>Deutsch</th><th>English</th></tr></thead><tbody id="sTab"></tbody></table>
+  </div>
+</section>
+</main>
+</div>
+<footer>Kalkulator elektronika – autor Adam Bryks 2026 · wartości dla diod i prądów są orientacyjne, zawsze sprawdź w karcie katalogowej (Datenblatt).</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+// ---------- liczby ----------
+function num(v){ if (v == null) return NaN; v = String(v).trim().replace(',', '.'); return v === '' ? NaN : parseFloat(v); }
+function pl(x, d = 2){ if (!isFinite(x)) return '–'; let s = (+x.toFixed(d)).toString(); return s.replace('.', ','); }
+// "4k7", "4,7k", "1M", "220", "2R2", "0.47"
+function parseR(t){
+  if (t == null) return NaN;
+  t = String(t).trim().replace(/\s|Ω|ohm/gi, '').replace(',', '.');
+  if (!t) return NaN;
+  if (/^\d*\.?\d+$/.test(t) || /^\d+\.$/.test(t)) return parseFloat(t);
+  const m = t.match(/^(\d*\.?\d*)([rRkKmM])(\d*)$/);
+  if (!m || (m[1] === '' && m[3] === '')) return NaN;
+  const mn = {r:1, k:1e3, m:1e6}[m[2].toLowerCase()];
+  const v = m[1].includes('.') ? parseFloat(m[1]) : parseFloat((m[1] || '0') + (m[3] ? '.' + m[3] : ''));
+  return isNaN(v) ? NaN : v * mn;
+}
+function fR(o){
+  if (!isFinite(o)) return '–';
+  if (o >= 1e6) return pl(o / 1e6, 2) + ' MΩ';
+  if (o >= 1e3) return pl(o / 1e3, 2) + ' kΩ';
+  if (o >= 1) return pl(o, 2) + ' Ω';
+  return pl(o, 3) + ' Ω';
+}
+function fI(mA){ if (!isFinite(mA)) return '–'; if (Math.abs(mA) >= 1000) return pl(mA / 1000, 2) + ' A'; if (Math.abs(mA) < 1) return pl(mA * 1000, 1) + ' µA'; return pl(mA, 2) + ' mA'; }
+function fP(w){ if (!isFinite(w)) return '–'; if (Math.abs(w) < 1) return pl(w * 1000, 1) + ' mW'; return pl(w, 2) + ' W'; }
+const E12 = [10,12,15,18,22,27,33,39,47,56,68,82];
+const E24 = [10,11,12,13,15,16,18,20,22,24,27,30,33,36,39,43,47,51,56,62,68,75,82,91];
+function wartosciE(seria, od = 1, doo = 1e7){ const w = []; for (let d = 0.1; d <= 1e6; d *= 10) for (const s of seria){ const v = +(s * d).toPrecision(3); if (v >= od && v <= doo) w.push(v); } return w; }
+const SE12 = wartosciE(E12), SE24 = wartosciE(E24);
+function wGore(v, lista = SE12){ for (const x of lista) if (x >= v * 0.999) return x; return lista[lista.length - 1]; }
+function najblizszy(v, lista = SE24){ let b = lista[0]; for (const x of lista) if (Math.abs(Math.log(x / v)) < Math.abs(Math.log(b / v))) b = x; return b; }
+
+// ---------- zakładki ----------
+document.querySelectorAll('#nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#nav button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('main section').forEach(s => s.classList.toggle('on', s.id === b.dataset.t));
+  try { localStorage.kalkTab = b.dataset.t; } catch(e){}
+});
+try { const t = localStorage.kalkTab; if (t) { const b = document.querySelector(`#nav button[data-t="${t}"]`); if (b) b.click(); } } catch(e){}
+
+// ================= REZYSTOR =================
+const KOL = [
+  {n:'czarny', c:'#111111', d:0, m:1},
+  {n:'brązowy', c:'#7a4a24', d:1, m:10, t:1},
+  {n:'czerwony', c:'#d62a20', d:2, m:100, t:2},
+  {n:'pomarańczowy', c:'#f08a1c', d:3, m:1e3},
+  {n:'żółty', c:'#f5d90a', d:4, m:1e4},
+  {n:'zielony', c:'#1f9a3a', d:5, m:1e5, t:0.5},
+  {n:'niebieski', c:'#2160d6', d:6, m:1e6, t:0.25},
+  {n:'fioletowy', c:'#8a3fc7', d:7, m:1e7, t:0.1},
+  {n:'szary', c:'#8d8d8d', d:8, m:1e8, t:0.05},
+  {n:'biały', c:'#f4f4f4', d:9, m:1e9},
+  {n:'złoty', c:'#c9a227', m:0.1, t:5},
+  {n:'srebrny', c:'#c0c4c8', m:0.01, t:10},
+];
+let ilePas = 4;
+let wyb = {4:[1,0,2,10], 5:[1,0,0,1,1]};   // indeksy w KOL (4: brązowy czarny czerwony złoty = 1 kΩ 5%)
+function rolePasow(n){ return n === 4 ? ['1. cyfra','2. cyfra','mnożnik','tolerancja'] : ['1. cyfra','2. cyfra','3. cyfra','mnożnik','tolerancja']; }
+function dozwolone(rola, i){
+  const k = KOL[i];
+  if (rola.includes('cyfra')) return k.d !== undefined;
+  if (rola === 'mnożnik') return k.m !== undefined && k.m <= 1e9;
+  return k.t !== undefined;
+}
+function rysujPasy(){
+  const r = rolePasow(ilePas), box = $('#pasy'); box.innerHTML = '';
+  r.forEach((rola, p) => {
+    const w = document.createElement('div'); w.className = 'pas';
+    w.innerHTML = `<b>${rola}</b>`;
+    KOL.forEach((k, i) => {
+      const b = document.createElement('button'); b.className = 'kol' + (wyb[ilePas][p] === i ? ' on' : '');
+      b.style.background = k.c; b.title = k.n;
+      if (!dozwolone(rola, i) || (p === 0 && i === 0)) b.disabled = true;
+      b.onclick = () => { wyb[ilePas][p] = i; licz(); };
+      w.appendChild(b);
+    });
+    box.appendChild(w);
+  });
+}
+function rysujRezystor(idx){
+  const svg = $('#rysR'), n = idx.length;
+  let s = `<line x1="0" y1="60" x2="520" y2="60" stroke="#9aa3ab" stroke-width="7"/>
+    <path d="M95 25 Q95 18 110 18 L160 18 Q170 30 190 30 L330 30 Q350 30 360 18 L410 18 Q425 18 425 25 L425 95 Q425 102 410 102 L360 102 Q350 90 330 90 L190 90 Q170 90 160 102 L110 102 Q95 102 95 95 Z" fill="#d9c49a" stroke="#00000055" stroke-width="2"/>`;
+  const xs = n === 4 ? [128, 178, 228, 385] : [128, 168, 208, 248, 385];
+  idx.forEach((i, p) => { const k = KOL[i]; const h = (xs[p] < 160 || xs[p] > 360) ? [18, 84] : [30, 60]; s += `<rect x="${xs[p] - 9}" y="${h[0]}" width="18" height="${h[1]}" fill="${k.c}" stroke="#00000040"/>`; });
+  svg.innerHTML = s;
+}
+function licz(){
+  const idx = wyb[ilePas];
+  rysujPasy(); rysujRezystor(idx);
+  let cyf = idx.slice(0, ilePas - 2).map(i => KOL[i].d).join('');
+  const mn = KOL[idx[ilePas - 2]].m, tol = KOL[idx[ilePas - 1]].t;
+  const v = parseInt(cyf, 10) * mn;
+  $('#rWyn').innerHTML = `${fR(v)} <span style="font-size:20px;color:var(--szary)">±${pl(tol, 2)} %</span>`;
+  $('#rZakres').textContent = `Może mieć od ${fR(v * (1 - tol / 100))} do ${fR(v * (1 + tol / 100))}. Kolory: ` + idx.map(i => KOL[i].n).join(', ');
+}
+document.querySelectorAll('#ilePas button').forEach(b => b.onclick = () => {
+  ilePas = +b.dataset.n; document.querySelectorAll('#ilePas button').forEach(x => x.classList.toggle('on', x === b)); licz();
+});
+licz();
+
+// wartość -> kolory
+$('#rWpisz').oninput = () => {
+  const box = $('#rWpiszWyn'), v = parseR($('#rWpisz').value);
+  if (!isFinite(v) || v <= 0){ box.style.display = $('#rWpisz').value.trim() ? '' : 'none'; box.innerHTML = '<span class="blad">Nie rozumiem tej wartości. Przykłady: 220, 4k7, 4,7k, 10k, 1M, 2R2</span>'; return; }
+  box.style.display = '';
+  const daj = (cyfry) => {   // ile cyfr znaczacych -> indeksy kolorow
+    let e = Math.floor(Math.log10(v)) - (cyfry - 1);
+    let m = Math.round(v / Math.pow(10, e));
+    if (m >= Math.pow(10, cyfry)){ m = Math.round(m / 10); e++; }
+    if (e < -2 || e > 9) return null;
+    const d = String(m).padStart(cyfry, '0').split('').map(Number);
+    const mnIdx = e >= 0 ? e : (e === -1 ? 10 : 11);
+    const dok = m * Math.pow(10, e);
+    return { idx: [...d, mnIdx], dok };
+  };
+  const a = daj(2), b = daj(3);
+  let h = '';
+  if (a){ const t = [...a.idx, 10]; h += `<div class="sr">4 paski (5 %): ${t.map(i => `<span title="${KOL[i].n}" style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${KOL[i].c};vertical-align:-5px;border:2px solid #0006"></span>`).join(' ')}</div><div class="notka">${t.map(i => KOL[i].n).join(' – ')}${Math.abs(a.dok - v) / v > 0.001 ? ` <span class="ost">(to jest ${fR(a.dok)})</span>` : ''}</div>`;
+    h += `<button class="b szary" style="margin-top:8px" onclick='ustawPasy(4,${JSON.stringify(t)})'>Pokaż na rysunku</button>`; }
+  if (b){ const t = [...b.idx, 1]; h += `<div class="sr" style="margin-top:14px">5 pasków (1 %): ${t.map(i => `<span title="${KOL[i].n}" style="display:inline-block;width:22px;height:22px;border-radius:50%;background:${KOL[i].c};vertical-align:-5px;border:2px solid #0006"></span>`).join(' ')}</div><div class="notka">${t.map(i => KOL[i].n).join(' – ')}</div>`; }
+  const n24 = najblizszy(v, SE24), n12 = najblizszy(v, SE12);
+  if (Math.abs(n24 - v) / v > 0.005) h += `<p class="ost" style="margin:10px 0 0">Takiego rezystora zwykle nie ma w sklepie. Najbliższe: ${fR(n12)} (szereg E12) albo ${fR(n24)} (E24).</p>`;
+  else if (Math.abs(n12 - v) / v > 0.005) h += `<p class="notka" style="margin:10px 0 0">To wartość z szeregu E24 – w małych zestawach jej może nie być, wtedy ${fR(n12)}.</p>`;
+  box.innerHTML = h;
+};
+window.ustawPasy = (n, t) => { document.querySelector(`#ilePas button[data-n="${n}"]`).click(); wyb[n] = t.slice(); licz(); window.scrollTo({top: 0, behavior: 'smooth'}); };
+
+// kondensator
+$('#cKod').oninput = () => {
+  const box = $('#cWyn'); let t = $('#cKod').value.trim().toUpperCase().replace(/[JKM]$/, '');
+  if (!t){ box.style.display = 'none'; return; }
+  box.style.display = '';
+  let pF;
+  if (/^\d{3}$/.test(t)) pF = parseInt(t.slice(0, 2)) * Math.pow(10, +t[2]);
+  else if (/^\d{1,2}$/.test(t)) pF = parseInt(t);
+  else { box.innerHTML = '<span class="blad">Wpisz 2 albo 3 cyfry z kondensatora, np. 104 albo 22.</span>'; return; }
+  const nF = pF / 1000, uF = pF / 1e6;
+  box.innerHTML = `<div class="duzy">${uF >= 1 ? pl(uF, 2) + ' µF' : nF >= 1 ? pl(nF, 2) + ' nF' : pl(pF, 1) + ' pF'}</div><div class="notka">= ${pl(pF, 0)} pF = ${pl(nF, 3)} nF = ${pl(uF, 6)} µF</div>`;
+};
+
+// ================= LED =================
+function liczLed(){
+  $('#lZasXBox').style.display = $('#lZas').value === 'x' ? '' : 'none';
+  const Vs = $('#lZas').value === 'x' ? num($('#lZasX').value) : num($('#lZas').value);
+  const Vf = num($('#lVf').value), I = +$('#lI').value, n = Math.max(1, Math.round(num($('#lN').value) || 1));
+  $('#lIWyp').textContent = I + ' mA';
+  const box = $('#lWyn'); box.className = 'wynik';
+  const zost = Vs - n * Vf;
+  if (!isFinite(zost)){ box.innerHTML = '–'; return; }
+  if (zost <= 0.05){ box.classList.add('zle'); box.innerHTML = `<div class="sr blad">Za małe napięcie!</div><div class="notka">${n} × ${pl(Vf)} V = ${pl(n * Vf)} V – dioda${n > 1 ? 'y' : ''} potrzebuje więcej niż ${pl(Vs)} V. Daj mniej diod szeregowo albo większe zasilanie.</div>`; return; }
+  const R = zost / (I / 1000), Rs = wGore(R), Ireal = zost / Rs * 1000, P = zost * Ireal / 1000;
+  let moc = P < 0.125 ? '¼ W (zwykły) wystarczy' : P < 0.25 ? '½ W' : P < 0.5 ? '1 W' : '2 W albo więcej';
+  let h = `<div class="notka">Policzone dokładnie: ${fR(R)}</div><div class="duzy">${fR(Rs)}</div>
+    <div>Weź ten rezystor – to najbliższy większy, jaki się kupuje. Popłynie wtedy <b>${fI(Ireal)}</b>.</div>
+    <div class="notka">Moc na rezystorze: ${fP(P)} → <b>${moc}</b>. Na rezystorze zostaje ${pl(zost)} V.</div>`;
+  if (zost < 0.6){ box.classList.add('uw'); h += `<p class="ost" style="margin:8px 0 0">Bardzo mało zapasu napięcia (${pl(zost)} V) – dioda może świecić nierówno albo słabo. Przy niebieskiej/białej diodzie z 3,3 V to normalne: daj mały rezystor (np. 22–47 Ω) albo zasil z 5 V.</p>`; }
+  if (Vs <= 3.4 && Ireal > 12) h += `<p class="ost" style="margin:8px 0 0">Uwaga: ESP8266 daje z pinu bezpiecznie ok. 12 mA, ESP32 ok. 20 mA.</p>`;
+  box.innerHTML = h;
+}
+$('#lKol').onchange = () => { $('#lVf').value = $('#lKol').value; liczLed(); };
+['#lZas', '#lZasX', '#lVf', '#lI', '#lN'].forEach(s => $(s).addEventListener('input', liczLed));
+$('#lZas').addEventListener('change', liczLed);
+liczLed();
+
+// ================= DZIELNIK =================
+function liczDz(){
+  const Vin = num($('#dVin').value), R1 = parseR($('#dR1').value), R2 = parseR($('#dR2').value), box = $('#dWyn');
+  if (!(Vin > 0 && R1 > 0 && R2 > 0)){ box.innerHTML = '<span class="notka">Wpisz Vin, R1 i R2.</span>'; return; }
+  const Vout = Vin * R2 / (R1 + R2), I = Vin / (R1 + R2) * 1000, mn = (R1 + R2) / R2;
+  box.className = 'wynik' + (Vout > 3.3 ? ' zle' : '');
+  box.innerHTML = `<div class="notka">Na pinie będzie:</div><div class="duzy">${pl(Vout, 3)} V</div>
+    <div class="notka">Prąd przez dzielnik: ${fI(I)} (tyle stale zjada z baterii).</div>
+    <div style="margin-top:8px">W programie: <code style="background:#1c232c;padding:2px 6px;border-radius:5px">napiecie = odczyt_na_pinie * ${pl(mn, 4).replace(',', '.')};</code></div>
+    ${Vout > 3.3 ? '<p class="blad" style="margin:8px 0 0">Ponad 3,3 V – to może uszkodzić pin ESP! Zwiększ R1 albo zmniejsz R2.</p>' : ''}`;
+}
+['#dVin', '#dR1', '#dR2'].forEach(s => $(s).addEventListener('input', liczDz));
+liczDz();
+$('#dDobierz').onclick = () => {
+  const Vin = num($('#dVin').value), cel = num($('#dCel').value), box = $('#dDobWyn'); box.style.display = '';
+  if (!(Vin > 0)){ box.innerHTML = '<span class="blad">Najpierw wpisz u góry Vin.</span>'; return; }
+  if (Vin <= cel){ box.innerHTML = `<span class="ok">Dzielnik nie jest potrzebny – ${pl(Vin)} V można podać prosto na pin (max ${pl(cel)} V).</span>`; return; }
+  const lista = SE12.filter(v => v >= 1e3 && v <= 1e6);
+  let naj = null;
+  for (const a of lista) for (const b of lista){
+    const s = a + b; if (s < 20e3 || s > 1.5e6) continue;
+    const vo = Vin * b / s; if (vo > cel) continue;
+    const ocena = vo / cel - (s > 600e3 ? 0.02 : 0) - (s < 100e3 ? 0.01 : 0);   // jak najblizej max; suma 100k-600k = malo zjada baterii
+    if (!naj || ocena > naj.o + 1e-9) naj = { a, b, vo, o: ocena, s };
+  }
+  if (!naj){ box.innerHTML = '<span class="blad">Nie znalazłem pary – sprawdź Vin.</span>'; return; }
+  box.innerHTML = `<div class="sr">R1 = ${fR(naj.a)} · R2 = ${fR(naj.b)}</div><div class="notka">Przy ${pl(Vin)} V na pinie będzie ${pl(naj.vo, 3)} V (max ${pl(cel)} V). Prąd: ${fI(Vin / naj.s * 1000)}.</div>
+    <button class="b szary" style="margin-top:8px" id="dWstaw">Wstaw do kalkulatora</button>`;
+  $('#dWstaw').onclick = () => { $('#dR1').value = fR(naj.a).replace(' Ω', '').replace(' kΩ', 'k').replace(' MΩ', 'M'); $('#dR2').value = fR(naj.b).replace(' Ω', '').replace(' kΩ', 'k').replace(' MΩ', 'M'); liczDz(); };
+};
+
+// ================= BATERIA =================
+function liczBat(){
+  const C = num($('#bPoj').value) * Math.max(1, num($('#bIle').value) || 1), Ia = num($('#bIa').value), ta = num($('#bTa').value) || 0, Is = num($('#bIs').value) || 0, ts = num($('#bTs').value) || 0, box = $('#bWyn');
+  if (!(C > 0 && Ia >= 0)){ box.innerHTML = '–'; return; }
+  const sr = (ta > 0 || ts > 0) ? (Ia * ta + Is * ts) / (ta + ts) : Ia;
+  if (!(sr > 0)){ box.innerHTML = '–'; return; }
+  const h = C * 0.8 / sr;
+  const tekst = h < 48 ? `${pl(h, 1)} godz.` : h < 24 * 60 ? `${pl(h / 24, 1)} dni` : `${pl(h / 24 / 30.4, 1)} mies.`;
+  box.innerHTML = `<div class="notka">Średni prąd: ${fI(sr)}</div><div class="duzy">ok. ${tekst}</div><div class="notka">= ${pl(h, 0)} godzin z ${pl(C, 0)} mAh</div>`;
+}
+['#bPoj', '#bIle', '#bIa', '#bTa', '#bIs', '#bTs'].forEach(s => $(s).addEventListener('input', liczBat));
+$('#bPreset').onchange = () => { const v = $('#bPreset').value; if (!v) return; const [a, b, c, d] = v.split('|'); $('#bIa').value = a; $('#bTa').value = b; $('#bIs').value = c; $('#bTs').value = d; liczBat(); };
+liczBat();
+
+// ================= PINY =================
+// s: z = spokojnie, y = z uwaga, r = nie ruszaj, n = tylko wejscie
+const PINY = {
+  esp32: { notka: 'Płytka ESP32 DevKit (WROOM). „ADC2” nie działa, gdy jest włączone WiFi – do pomiarów z WiFi bierz piny ADC1 (32–39).', p: [
+    ['GPIO0', 'y', 'Przycisk BOOT. Przy starcie musi być HIGH – jeśli coś go ściągnie do GND, ESP nie wystartuje programu.', 'ADC2 · Touch1'],
+    ['GPIO1 (TX)', 'r', 'Wysyła dane do USB (Serial Monitor). Nie używaj, bo zepsujesz wgrywanie i Serial.', 'UART'],
+    ['GPIO2', 'y', 'Niebieska dioda na płytce. Przy wgrywaniu musi być LOW albo wolny. Można używać jako wyjście.', 'ADC2 · Touch2 · LED'],
+    ['GPIO3 (RX)', 'r', 'Odbiera dane z USB. Nie używaj.', 'UART'],
+    ['GPIO4', 'z', 'Wolny, dobry pin.', 'ADC2 · Touch0'],
+    ['GPIO5', 'y', 'Przy starcie daje krótki sygnał PWM. Domyślny CS dla SPI (karta SD, TFT) – do tego jest OK.', 'SPI CS'],
+    ['GPIO6–11', 'r', 'Połączone z pamięcią flash na płytce. NIGDY nie używaj – ESP się zawiesi.', 'flash'],
+    ['GPIO12', 'y', 'Przy starcie MUSI być LOW – jeśli będzie HIGH, ESP nie wystartuje (zła pamięć flash). Uważaj z pull-up.', 'ADC2 · Touch5'],
+    ['GPIO13', 'z', 'Wolny, dobry pin.', 'ADC2 · Touch4'],
+    ['GPIO14', 'y', 'Przy starcie daje krótki sygnał PWM – nie podłączaj tam czegoś, co od tego „kliknie” (przekaźnik).', 'ADC2 · Touch6'],
+    ['GPIO15', 'y', 'Przy starcie daje sygnał PWM; LOW przy starcie wycisza komunikaty startowe. Jako wyjście OK.', 'ADC2 · Touch3'],
+    ['GPIO16', 'z', 'Wolny (na module WROVER zajęty przez PSRAM).', 'UART2 RX'],
+    ['GPIO17', 'z', 'Wolny (na module WROVER zajęty przez PSRAM).', 'UART2 TX'],
+    ['GPIO18', 'z', 'Domyślny SCK dla SPI.', 'SPI SCK'],
+    ['GPIO19', 'z', 'Domyślny MISO dla SPI.', 'SPI MISO'],
+    ['GPIO21', 'z', 'Domyślny SDA dla I2C (OLED, czujniki).', 'I2C SDA'],
+    ['GPIO22', 'z', 'Domyślny SCL dla I2C.', 'I2C SCL'],
+    ['GPIO23', 'z', 'Domyślny MOSI dla SPI.', 'SPI MOSI'],
+    ['GPIO25', 'z', 'Wolny. Ma prawdziwe wyjście analogowe (DAC1).', 'ADC2 · DAC1'],
+    ['GPIO26', 'z', 'Wolny. Ma prawdziwe wyjście analogowe (DAC2).', 'ADC2 · DAC2'],
+    ['GPIO27', 'z', 'Wolny, dobry pin.', 'ADC2 · Touch7'],
+    ['GPIO32', 'z', 'Wolny. Dobry do pomiaru napięcia także przy WiFi.', 'ADC1 · Touch9'],
+    ['GPIO33', 'z', 'Wolny. Dobry do pomiaru napięcia także przy WiFi.', 'ADC1 · Touch8'],
+    ['GPIO34', 'n', 'TYLKO wejście, bez wewnętrznego pull-up. Dobry do pomiaru napięcia.', 'ADC1'],
+    ['GPIO35', 'n', 'TYLKO wejście, bez wewnętrznego pull-up. Dobry do pomiaru napięcia.', 'ADC1'],
+    ['GPIO36 (VP)', 'n', 'TYLKO wejście, bez pull-up. Na płytce opisany często jako VP lub SVP.', 'ADC1'],
+    ['GPIO39 (VN)', 'n', 'TYLKO wejście, bez pull-up. Na płytce opisany często jako VN lub SVN.', 'ADC1'],
+    ['EN', 'y', 'Reset (przycisk EN). Zwarcie do GND = restart.', 'reset'],
+  ]},
+  esp8266: { notka: 'Na płytce piny są opisane D0–D8 – w programie możesz pisać D1 albo numer GPIO (np. 5). Pin A0 na NodeMCU / D1 mini mierzy 0–3,2 V.', p: [
+    ['D0 (GPIO16)', 'y', 'Bez PWM, bez I2C, bez przerwań. Do wybudzania z deep sleep: połącz D0 z RST. Przy starcie jest HIGH.', 'wake'],
+    ['D1 (GPIO5)', 'z', 'Najlepszy wolny pin. Domyślny SCL dla I2C.', 'I2C SCL'],
+    ['D2 (GPIO4)', 'z', 'Najlepszy wolny pin. Domyślny SDA dla I2C.', 'I2C SDA'],
+    ['D3 (GPIO0)', 'y', 'Przycisk FLASH. Przy starcie musi być HIGH – jeśli będzie LOW, ESP czeka na wgrywanie zamiast startować.', 'boot'],
+    ['D4 (GPIO2)', 'y', 'Niebieska dioda na module (świeci przy LOW). Przy starcie musi być HIGH.', 'LED · boot'],
+    ['D5 (GPIO14)', 'z', 'Wolny. Domyślny SCK dla SPI.', 'SPI SCK'],
+    ['D6 (GPIO12)', 'z', 'Wolny. Domyślny MISO dla SPI.', 'SPI MISO'],
+    ['D7 (GPIO13)', 'z', 'Wolny. Domyślny MOSI dla SPI.', 'SPI MOSI'],
+    ['D8 (GPIO15)', 'y', 'Przy starcie MUSI być LOW (ma rezystor do GND). Jeśli coś da HIGH, ESP nie wystartuje. Często CS dla SPI.', 'SPI CS · boot'],
+    ['RX (GPIO3)', 'y', 'Odbiera dane z USB. Można używać jako wejście, ale wtedy nie działa Serial przy wgrywaniu.', 'UART'],
+    ['TX (GPIO1)', 'r', 'Wysyła dane do USB (Serial Monitor). Lepiej nie ruszać.', 'UART'],
+    ['A0', 'n', 'Jedyne wejście analogowe. Na NodeMCU / D1 mini 0–3,2 V (ma już dzielnik na płytce), na gołym module tylko 0–1 V.', 'ADC'],
+    ['SD2, SD3, CLK, SD0, SD1, CMD (GPIO6–11)', 'r', 'Pamięć flash. NIGDY nie używaj.', 'flash'],
+    ['RST', 'y', 'Reset. Zwarcie do GND = restart.', 'reset'],
+  ]},
+  s3: { notka: 'ESP32-S3 DevKitC-1. Na wersjach z dużym PSRAM (N8R8, N16R8) piny 35–37 też są zajęte. Dioda RGB na płytce: GPIO48 (v1.0) albo GPIO38 (v1.1).', p: [
+    ['GPIO0', 'y', 'Przycisk BOOT. Przy starcie musi być HIGH.', 'boot'],
+    ['GPIO1–GPIO10', 'z', 'Wolne. Dobre do pomiaru napięcia także przy WiFi.', 'ADC1'],
+    ['GPIO3', 'y', 'Pin startowy (JTAG) – lepiej nie dawać tu pull-up/pull-down. Jako zwykły pin działa.', 'ADC1 · strapping'],
+    ['GPIO11–GPIO18', 'z', 'Wolne. Pomiar analogowy (ADC2) nie działa przy włączonym WiFi.', 'ADC2'],
+    ['GPIO19 / GPIO20', 'r', 'USB (D− / D+) – zajęte przez gniazdo USB. Nie używaj, jeśli wgrywasz przez USB.', 'USB'],
+    ['GPIO21', 'z', 'Wolny, dobry pin.', ''],
+    ['GPIO26–GPIO32', 'r', 'Pamięć flash / PSRAM. NIGDY nie używaj.', 'flash'],
+    ['GPIO33–GPIO37', 'y', 'Na płytkach z PSRAM „R8” (Octal) zajęte – nie używaj. Bez PSRAM są wolne.', 'PSRAM'],
+    ['GPIO38', 'y', 'Na DevKitC-1 v1.1 tu jest dioda RGB. Inaczej wolny.', 'LED RGB (v1.1)'],
+    ['GPIO39–GPIO42', 'z', 'Wolne (to też piny JTAG, ale można używać).', 'JTAG'],
+    ['GPIO43 (TX)', 'y', 'UART0 TX – wysyła logi. Lepiej nie ruszać.', 'UART'],
+    ['GPIO44 (RX)', 'y', 'UART0 RX. Lepiej nie ruszać.', 'UART'],
+    ['GPIO45', 'y', 'Pin startowy (napięcie flash) – przy starcie nie może być HIGH.', 'strapping'],
+    ['GPIO46', 'y', 'Pin startowy – przy starcie LOW. Najlepiej tylko jako wejście.', 'strapping'],
+    ['GPIO47', 'z', 'Wolny.', ''],
+    ['GPIO48', 'y', 'Na DevKitC-1 v1.0 tu jest dioda RGB (WS2812). Inaczej wolny.', 'LED RGB (v1.0)'],
+  ]},
+};
+let plytka = 'esp32';
+function rysujPiny(){
+  const q = $('#pSzukaj').value.trim().toLowerCase(), d = PINY[plytka];
+  const nazwa = {z:'z', y:'y', r:'r', n:'n'};
+  $('#pTab').innerHTML = d.p.filter(p => !q || p.join(' ').toLowerCase().includes(q)).map(p =>
+    `<tr><td class="pin"><i class="kr ${nazwa[p[1]]}"></i>${p[0]}</td><td>${p[2]}${p[3] ? '<br>' + p[3].split(' · ').map(t => `<span class="tag">${t}</span>`).join('') : ''}</td></tr>`).join('')
+    || '<tr><td colspan="2" class="notka">Nic nie znalazłem.</td></tr>';
+  $('#pNotka').textContent = d.notka;
+}
+document.querySelectorAll('#plytka button').forEach(b => b.onclick = () => { plytka = b.dataset.p; document.querySelectorAll('#plytka button').forEach(x => x.classList.toggle('on', x === b)); rysujPiny(); });
+$('#pSzukaj').oninput = rysujPiny;
+rysujPiny();
+
+// ================= OHM =================
+let kolejnosc = [];   // ostatnio wpisane pola
+function liczOhm(e){
+  const pola = {U: $('#oU'), I: $('#oI'), R: $('#oR'), P: $('#oP')};
+  if (e){ const k = e.target.dataset.o; kolejnosc = kolejnosc.filter(x => x !== k); if (e.target.value.trim()) kolejnosc.push(k); }
+  const dane = kolejnosc.slice(-2), box = $('#oWyn');
+  Object.entries(pola).forEach(([k, el]) => { if (!dane.includes(k)) { el.value = ''; el.style.color = ''; } });
+  if (dane.length < 2){ box.innerHTML = '<span class="notka">Wpisz jeszcze ' + (2 - dane.length) + ' wartość. U = I × R · P = U × I</span>'; return; }
+  const g = k => k === 'R' ? parseR(pola.R.value) : k === 'I' ? num(pola.I.value) / 1000 : num(pola[k].value);
+  let U, I, R, P; const has = k => dane.includes(k);
+  if (has('U')) U = g('U'); if (has('I')) I = g('I'); if (has('R')) R = g('R'); if (has('P')) P = g('P');
+  if (has('U') && has('I')){ R = U / I; P = U * I; }
+  else if (has('U') && has('R')){ I = U / R; P = U * I; }
+  else if (has('U') && has('P')){ I = P / U; R = U / I; }
+  else if (has('I') && has('R')){ U = I * R; P = U * I; }
+  else if (has('I') && has('P')){ U = P / I; R = U / I; }
+  else if (has('R') && has('P')){ I = Math.sqrt(P / R); U = I * R; }
+  if (![U, I, R, P].every(isFinite)){ box.innerHTML = '<span class="blad">Nie da się policzyć – sprawdź liczby (np. zero).</span>'; return; }
+  const wpisz = (k, v) => { if (!dane.includes(k)){ pola[k].value = v; pola[k].style.color = 'var(--akcent)'; } };
+  wpisz('U', pl(U, 3)); wpisz('I', pl(I * 1000, 3)); wpisz('R', pl(R, 2)); wpisz('P', pl(P, 4));
+  const moc = P < 0.125 ? '¼ W wystarczy' : P < 0.25 ? 'weź ½ W' : P < 0.5 ? 'weź 1 W' : P < 1 ? 'weź 2 W' : 'duży rezystor mocy (' + pl(Math.ceil(P * 2)) + ' W)';
+  box.innerHTML = `<div class="sr">U = ${pl(U, 3)} V · I = ${fI(I * 1000)} · R = ${fR(R)} · P = ${fP(P)}</div><div class="notka">Rezystor: ${moc}.</div>`;
+}
+['#oU', '#oI', '#oR', '#oP'].forEach(s => $(s).addEventListener('input', liczOhm));
+$('#oCzysc').onclick = () => { kolejnosc = []; ['#oU', '#oI', '#oR', '#oP'].forEach(s => { $(s).value = ''; $(s).style.color = ''; }); liczOhm(); };
+
+// ================= SŁOWNICZEK =================
+const SL = [
+  ['rezystor, opornik','Widerstand','resistor'],['kondensator','Kondensator','capacitor'],['kondensator elektrolityczny','Elko (Elektrolytkondensator)','electrolytic capacitor'],
+  ['kondensator ceramiczny','Keramikkondensator','ceramic capacitor'],['dioda','Diode','diode'],['dioda LED','LED / Leuchtdiode','LED'],['tranzystor','Transistor','transistor'],
+  ['przekaźnik','Relais','relay'],['cewka','Spule','coil / inductor'],['bezpiecznik','Sicherung','fuse'],['przełącznik','Schalter','switch'],['przycisk','Taster','push button'],
+  ['potencjometr','Potentiometer (Poti)','potentiometer'],['enkoder (pokrętło)','Drehgeber / Encoder','rotary encoder'],['czujnik','Sensor / Fühler','sensor'],['wyświetlacz','Display / Anzeige','display'],
+  ['silnik','Motor','motor'],['serwo','Servo','servo'],['głośnik','Lautsprecher','speaker'],['brzęczyk','Summer / Buzzer','buzzer'],
+  ['napięcie','Spannung','voltage'],['prąd','Strom','current'],['opór, rezystancja','Widerstand','resistance'],['moc','Leistung','power'],['masa (GND)','Masse','ground (GND)'],
+  ['uziemienie','Erdung','earth'],['zwarcie','Kurzschluss','short circuit'],['biegunowość (+/−)','Polarität','polarity'],['plus / minus','Pluspol / Minuspol','positive / negative'],
+  ['zasilacz','Netzteil','power supply'],['ładowarka','Ladegerät','charger'],['akumulator','Akku','rechargeable battery'],['bateria','Batterie','battery'],
+  ['moduł ładowania (TP4056)','Lademodul','charging module'],['przetwornica obniżająca','Step-Down-Wandler / Abwärtswandler','buck converter'],['przetwornica podwyższająca','Step-Up-Wandler / Aufwärtswandler','boost converter'],
+  ['stabilizator napięcia','Spannungsregler','voltage regulator'],['lutownica','Lötkolben','soldering iron'],['stacja lutownicza','Lötstation','soldering station'],
+  ['cyna (lut)','Lötzinn','solder'],['topnik','Flussmittel','flux'],['odsysacz cyny','Entlötpumpe','desoldering pump'],['plecionka do rozlutowywania','Entlötlitze','desoldering braid'],
+  ['grot lutownicy','Lötspitze','soldering tip'],['płytka stykowa','Steckbrett / Breadboard','breadboard'],['płytka uniwersalna (dziurkowana)','Lochrasterplatine','perfboard'],
+  ['płytka drukowana','Platine / Leiterplatte','PCB'],['listwa goldpin (męska)','Stiftleiste','pin header'],['listwa żeńska','Buchsenleiste','female header'],
+  ['przewód (zworka) do płytki','Jumperkabel / Steckbrücke','jumper wire'],['przewód','Kabel / Leitung','wire / cable'],['linka (przewód wielodrutowy)','Litze','stranded wire'],
+  ['wtyczka','Stecker','plug'],['gniazdo','Buchse','socket / jack'],['złącze śrubowe','Schraubklemme','screw terminal'],['koszulka termokurczliwa','Schrumpfschlauch','heat-shrink tubing'],
+  ['izolacja','Isolierung','insulation'],['taśma izolacyjna','Isolierband','electrical tape'],['ściągacz izolacji','Abisolierzange','wire stripper'],['szczypce boczne (obcinaczki)','Seitenschneider','side cutters'],
+  ['szczypce','Zange','pliers'],['pęseta','Pinzette','tweezers'],['lupa','Lupe','magnifier'],['multimetr','Multimeter','multimeter'],['zasilacz laboratoryjny','Labornetzteil','bench power supply'],
+  ['obudowa','Gehäuse','case / enclosure'],['śrubka','Schraube','screw'],['nakrętka','Mutter','nut'],['podkładka','Unterlegscheibe','washer'],['tulejka dystansowa','Abstandshalter','standoff'],
+  ['wkładka gwintowana','Gewindeeinsatz','threaded insert'],['klej na gorąco','Heißkleber','hot glue'],['karta katalogowa','Datenblatt','datasheet'],['schemat połączeń','Schaltplan','schematic'],
+  ['wgrywanie programu','Hochladen / Flashen','upload / flash'],['sterownik (do komputera)','Treiber','driver'],['biblioteka (Arduino)','Bibliothek','library'],
+  ['wejście / wyjście','Eingang / Ausgang','input / output'],['rezystor podciągający','Pull-up-Widerstand','pull-up resistor'],['dzielnik napięcia','Spannungsteiler','voltage divider'],
+];
+function rysujSl(){
+  const q = $('#sSzukaj').value.trim().toLowerCase();
+  $('#sTab').innerHTML = SL.filter(r => !q || r.join(' ').toLowerCase().includes(q)).map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td style="color:var(--szary)">${r[2]}</td></tr>`).join('') || '<tr><td colspan="3" class="notka">Nic nie znalazłem.</td></tr>';
+}
+$('#sSzukaj').oninput = rysujSl; rysujSl();
+</script>
+</body>
+</html>
